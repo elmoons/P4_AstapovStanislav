@@ -1,5 +1,7 @@
 from datetime import datetime
 from enum import Enum
+from typing import List
+
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
@@ -12,11 +14,6 @@ alphabet = ",.:(_)-0123456789АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧ�
 EXITING_LOGINS = ["bob1997", "carl-stalker1337", "ivan_v_tanke"]
 
 
-class EncryptMethod(Enum):
-    caesar: "caesar"
-    vigenere: "vigenere"
-
-
 class Users(BaseModel):
     id: int
     login: str = Field(min_length=3, max_length=30)
@@ -24,7 +21,7 @@ class Users(BaseModel):
 
 
 class MethodsOfEncryption(BaseModel):
-    method: EncryptMethod
+    id: int
     caption: str = Field(max_length=30)
     json_params: dict
     descriptions: str = Field(max_length=1000)
@@ -33,12 +30,13 @@ class MethodsOfEncryption(BaseModel):
 class Sessions(BaseModel):
     id: int
     user_id: int
-    method_id: int
+    method_id: MethodsOfEncryption
     data_in: datetime
     params: str
-    data_out: datetime
+    data_out: str
     status: int
     created_at: datetime
+    time_op: float
 
 
 fake_users = [
@@ -46,6 +44,37 @@ fake_users = [
     {"id": 2, "login": "carl-stalker1337", "secret": "1337csgo1337"},
     {"id": 3, "login": "ivan_v_tanke", "secret": "world_of_tanks"}
 ]
+
+
+methods_of_encryptions = [
+    {"id": 1, "caption": "Method of Caesar", "json_params": {"text": "str", "shifts": "int"}, "descriptions": "The Caesar Cipher shifts letters by "
+                                                                                "a fixed number in the alphabet."},
+    {"id": 2, "caption": "Method ", "json_params": {"text": "str", "keyword": "str"}, "descriptions": "The Vigenère Cipher uses a keyword to shift "
+                                                                       "letters variably."}
+]
+
+
+@app.post("/add_user")
+def add_user(user: List[Users]):
+    fake_users.extend(user)
+    return {"status": 200, "data": fake_users}
+
+
+@app.get("/list_users")
+def get_list_users():
+    users_without_secret = []
+    for user in fake_users:
+        new_user = {}
+        for key, value in user.items():
+            if key != "secret":
+                new_user[key] = value
+        users_without_secret.append(new_user)
+    return users_without_secret
+
+
+@app.get("/get_methods")
+def get_methods():
+    return methods_of_encryptions
 
 
 @app.get("/encrypt/caesar")
