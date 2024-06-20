@@ -1,15 +1,48 @@
+from datetime import datetime
+from enum import Enum
+
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 app = FastAPI(
     title="Сервис для шифрования"
 )
 
 
-class Users(BaseModel):
-    login = str
-    secret = str
+class EncryptType(Enum):
+    caesar: "caesar"
+    vigenere: "vigenere"
 
+
+class Users(BaseModel):
+    id: int
+    login: str = Field(min_length=3, max_length=30)
+    secret: str
+
+
+class MethodsOfEncryption(BaseModel):
+    id: int
+    caption: str
+    json_params: dict
+    descriptions: str
+
+
+class Sessions(BaseModel):
+    id: int
+    user_id: int
+    method_id: int
+    data_in: datetime
+    params: str
+    data_out: datetime
+    status: int
+    created_at: datetime
+
+
+fake_users = [
+    {"id": 1, "login": "bob1997", "secret": "qwert123"},
+    {"id": 2, "login": "carl-stalker1337", "secret": "1337csgo1337"},
+    {"id": 3, "login": "ivan_v_tanke", "secret": "world_of_tanks"}
+]
 
 
 @app.get("/caesar")
