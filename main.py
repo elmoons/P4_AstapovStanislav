@@ -86,8 +86,16 @@ def get_methods():
     return methods_of_encryptions
 
 
+def identification_user(login: str, secret: str):
+    user = next((u for u in fake_users if u["login"] == login and u["secret"] == secret), None)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid login or secret")
+    return user
+
+
 @app.get("/encrypt/caesar")
-def encrypt_caesar_method(text_for_encrypt: str, number_of_shifts: int):
+def encrypt_caesar_method(text_for_encrypt: str, number_of_shifts: int, login: str, secret: str):
+    user = identification_user(login, secret)
     text_for_encrypt_upper = text_for_encrypt.upper()
     encrypted_text = []
     alphabet_size = len(ALPHABET)
@@ -100,11 +108,27 @@ def encrypt_caesar_method(text_for_encrypt: str, number_of_shifts: int):
         else:
             encrypted_text.append(char)
 
-    return ''.join(encrypted_text)
+    encrypted_text_str = ''.join(encrypted_text)
+
+    session = {
+        "id": len(sessions) + 1,
+        "user_id": user["id"],
+        "method_id": 1,
+        "data_in": text_for_encrypt,
+        "params": {"text": text_for_encrypt, "shifts": number_of_shifts},
+        "data_out": encrypted_text_str,
+        "status": 200,
+        "created_at": datetime.now(),
+        "time_op": 0.0  # Placeholder for actual operation time
+    }
+    sessions.append(session)
+
+    return {"status": 200, "data": encrypted_text_str}
 
 
 @app.get("/decrypt/caesar")
-def decrypt_caesar_method(text_for_decrypt: str, number_of_shifts: int):
+def decrypt_caesar_method(text_for_decrypt: str, number_of_shifts: int, login: str, secret: str):
+    user = identification_user(login, secret)
     text_for_decrypt_upper = text_for_decrypt.upper()
     decrypted_text = []
     alphabet_size = len(ALPHABET)
@@ -117,11 +141,27 @@ def decrypt_caesar_method(text_for_decrypt: str, number_of_shifts: int):
         else:
             decrypted_text.append(char)
 
-    return ''.join(decrypted_text)
+    decrypted_text_str = ''.join(decrypted_text)
+
+    session = {
+        "id": len(sessions) + 1,
+        "user_id": user["id"],
+        "method_id": 1,
+        "data_in": text_for_decrypt,
+        "params": {"text": text_for_decrypt, "shifts": number_of_shifts},
+        "data_out": decrypted_text_str,
+        "status": 200,
+        "created_at": datetime.now(),
+        "time_op": 0.0  # Placeholder for actual operation time
+    }
+    sessions.append(session)
+
+    return {"status": 200, "data": decrypted_text_str}
 
 
 @app.get("/encrypt/vigenere")
-def encrypt_vigenere_method(text_for_encrypt: str, keyword: str):
+def encrypt_vigenere_method(text_for_encrypt: str, keyword: str, login: str, secret: str):
+    user = identification_user(login, secret)
     text_for_encrypt_upper = text_for_encrypt.upper()
     keyword_upper = keyword.upper()
     encrypted_text = []
@@ -138,11 +178,28 @@ def encrypt_vigenere_method(text_for_encrypt: str, keyword: str):
         else:
             encrypted_text.append(char)
 
-    return ''.join(encrypted_text)
+    encrypted_text_str = ''.join(encrypted_text)
+
+    session = {
+        "id": len(sessions) + 1,
+        "user_id": user["id"],
+        "method_id": 2,
+        "data_in": text_for_encrypt,
+        "params": {"text": text_for_encrypt, "keyword": keyword},
+        "data_out": encrypted_text_str,
+        "status": 200,
+        "created_at": datetime.now(),
+        "time_op": 0.0  # Placeholder for actual operation time
+    }
+    sessions.append(session)
+
+    return {"status": 200, "data": encrypted_text_str}
+
 
 
 @app.get("/decrypt/vigenere")
-def decrypt_vigenere_method(text_for_decrypt: str, keyword: str):
+def decrypt_vigenere_method(text_for_decrypt: str, keyword: str, login: str, secret: str):
+    user = identification_user(login, secret)
     text_for_decrypt_upper = text_for_decrypt.upper()
     keyword_upper = keyword.upper()
     decrypted_text = []
@@ -159,5 +216,39 @@ def decrypt_vigenere_method(text_for_decrypt: str, keyword: str):
         else:
             decrypted_text.append(char)
 
-    return ''.join(decrypted_text)
+    decrypted_text_str =''.join(decrypted_text)
 
+    session = {
+        "id": len(sessions) + 1,
+        "user_id": user["id"],
+        "method_id": 2,
+        "data_in": text_for_decrypt,
+        "params": {"text": text_for_decrypt, "keyword": keyword},
+        "data_out": decrypted_text_str,
+        "status": 200,
+        "created_at": datetime.now(),
+        "time_op": 0.0  # Placeholder for actual operation time
+    }
+
+    sessions.append(session)
+
+    return {"status": 200, "data": decrypted_text_str}
+
+
+@app.get("/get_session/{session_id}")
+def get_session(session_id: int, login: str, secret: str):
+    user = identification_user(login, secret)
+    session = next((s for s in sessions if s["id"] == session_id and s["user_id"] == user["id"]), None)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found or access denied")
+    return session
+
+
+@app.delete("/delete_session/{session_id}")
+def delete_session(session_id: int, login: str, secret: str):
+    user = identification_user(login, secret)
+    session_index = next((i for i, s in enumerate(sessions) if s["id"] == session_id and s["user_id"] == user["id"]), None)
+    if session_index is None:
+        raise HTTPException(status_code=404, detail="Session not found or access denied")
+    del sessions[session_index]
+    return {"status": 200, "detail": "Session deleted successfully"}
