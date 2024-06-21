@@ -119,7 +119,7 @@ def encrypt_caesar_method(text_for_encrypt: str, number_of_shifts: int, login: s
         "data_out": encrypted_text_str,
         "status": 200,
         "created_at": datetime.now(),
-        "time_op": 0.0  # Placeholder for actual operation time
+        "time_op": 0.0
     }
     sessions.append(session)
 
@@ -152,7 +152,7 @@ def decrypt_caesar_method(text_for_decrypt: str, number_of_shifts: int, login: s
         "data_out": decrypted_text_str,
         "status": 200,
         "created_at": datetime.now(),
-        "time_op": 0.0  # Placeholder for actual operation time
+        "time_op": 0.0
     }
     sessions.append(session)
 
@@ -189,12 +189,11 @@ def encrypt_vigenere_method(text_for_encrypt: str, keyword: str, login: str, sec
         "data_out": encrypted_text_str,
         "status": 200,
         "created_at": datetime.now(),
-        "time_op": 0.0  # Placeholder for actual operation time
+        "time_op": 0.0
     }
     sessions.append(session)
 
     return {"status": 200, "data": encrypted_text_str}
-
 
 
 @app.get("/decrypt/vigenere")
@@ -227,7 +226,7 @@ def decrypt_vigenere_method(text_for_decrypt: str, keyword: str, login: str, sec
         "data_out": decrypted_text_str,
         "status": 200,
         "created_at": datetime.now(),
-        "time_op": 0.0  # Placeholder for actual operation time
+        "time_op": 0.0
     }
 
     sessions.append(session)
@@ -251,4 +250,4 @@ def delete_session(session_id: int, login: str, secret: str):
     if session_index is None:
         raise HTTPException(status_code=404, detail="Session not found or access denied")
     del sessions[session_index]
-    return {"status": 200, "detail": "Session deleted successfully"}
+    return {"status": 200, "data": sessions}
