@@ -37,7 +37,7 @@
 1. Запустите сервер FastAPI:
 
    ```sh
-   uvicorn app.main:app --reload
+   uvicorn main:app --reload
    ```
 
    Здесь `app.main` - путь к вашему основному модулю приложения.
