@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import MetaData, Table, Column, Integer, String, TIMESTAMP, ForeignKey, JSON
+from sqlalchemy import MetaData, Table, Column, Integer, String, TIMESTAMP, ForeignKey, JSON, Interval
 
 metadata = MetaData()
 
@@ -30,5 +30,5 @@ sessions = Table(
     Column("data_out", String, nullable=False),
     Column("status", Integer, nullable=False),
     Column("created_at", TIMESTAMP, default=datetime.utcnow),
-    Column("time_op", ),
+    Column("time_op", Interval)
 )
