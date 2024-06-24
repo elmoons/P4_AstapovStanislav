@@ -48,7 +48,7 @@ fake_users = [
 methods_of_encryptions = [
     {"id": 1, "caption": "Method of Caesar", "json_params": {"text": "str", "shifts": "int"}, "description": "The Caesar Cipher shifts letters by "
                                                                                 "a fixed number in the alphabet."},
-    {"id": 2, "caption": "Method ", "json_params": {"text": "str", "keyword": "str"}, "description": "The Vigenère Cipher uses a keyword to shift "
+    {"id": 2, "caption": "Method of Vigenere", "json_params": {"text": "str", "keyword": "str"}, "description": "The Vigenère Cipher uses a keyword to shift "
                                                                        "letters variably."}
 ]
 
