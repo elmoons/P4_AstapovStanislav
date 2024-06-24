@@ -243,9 +243,16 @@ def get_session(session_id: int, login: str, secret: str):
     return session
 
 
+def identification_user_without_login(secret: str):
+    user = next((u for u in fake_users if u["secret"] == secret), None)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid login or secret")
+    return user
+
+
 @app.delete("/delete_session/{session_id}")
-def delete_session(session_id: int, login: str, secret: str):
-    user = identification_user(login, secret)
+def delete_session(session_id: int, secret: str):
+    user = identification_user_without_login(secret)
     session_index = next((i for i, s in enumerate(sessions) if s["id"] == session_id and s["user_id"] == user["id"]), None)
     if session_index is None:
         raise HTTPException(status_code=404, detail="Session not found or access denied")
