@@ -23,8 +23,8 @@ methods = Table(
 
 sessions = Table(
     Column("id", Integer, primary_key=True),
-    Column("user_id", Integer, nullable=False),
-    Column("method_id", Integer, nullable=False),
+    Column("user_id", Integer, ForeignKey("users.id")),
+    Column("method_id", Integer, ForeignKey("methods.id")),
     Column("data_in", String, nullable=False),
     Column("params", JSON),
     Column("data_out", String, nullable=False),
