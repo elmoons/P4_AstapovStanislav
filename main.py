@@ -93,6 +93,20 @@ def identification_user(login: str, secret: str):
     return user
 
 
+def session_caesar(user, text_before_operation, number_of_shifts, text_after_operation_str):
+    session = {
+        "id": len(sessions) + 1,
+        "user_id": user["id"],
+        "method_id": 1,
+        "data_in": text_before_operation,
+        "params": {"text": text_before_operation, "shifts": number_of_shifts},
+        "data_out": text_after_operation_str,
+        "status": 200,
+        "created_at": datetime.now(),
+        "time_op": 0.0
+    }
+    return session
+
 @app.get("/encrypt/caesar")
 def encrypt_caesar_method(text_for_encrypt: str, number_of_shifts: int, login: str, secret: str):
     user = identification_user(login, secret)
@@ -109,21 +123,10 @@ def encrypt_caesar_method(text_for_encrypt: str, number_of_shifts: int, login: s
             encrypted_text.append(char)
 
     encrypted_text_str = ''.join(encrypted_text)
-
-    session = {
-        "id": len(sessions) + 1,
-        "user_id": user["id"],
-        "method_id": 1,
-        "data_in": text_for_encrypt,
-        "params": {"text": text_for_encrypt, "shifts": number_of_shifts},
-        "data_out": encrypted_text_str,
-        "status": 200,
-        "created_at": datetime.now(),
-        "time_op": 0.0
-    }
+    session = session_caesar(user, text_for_encrypt, number_of_shifts, encrypted_text_str)
     sessions.append(session)
 
-    return {"status": 200, "data": encrypted_text_str}
+    return {"status": 200, "data": encrypted_text_str, "sessions": sessions}
 
 
 @app.get("/decrypt/caesar")
@@ -142,22 +145,25 @@ def decrypt_caesar_method(text_for_decrypt: str, number_of_shifts: int, login: s
             decrypted_text.append(char)
 
     decrypted_text_str = ''.join(decrypted_text)
+    session = session_caesar(user, text_for_decrypt, number_of_shifts, decrypted_text_str)
+    sessions.append(session)
 
+    return {"status": 200, "data": decrypted_text_str, "sessions": sessions}
+
+
+def session_vigenere(user, text_before_operation, keyword, text_after_operation_str):
     session = {
         "id": len(sessions) + 1,
         "user_id": user["id"],
-        "method_id": 1,
-        "data_in": text_for_decrypt,
-        "params": {"text": text_for_decrypt, "shifts": number_of_shifts},
-        "data_out": decrypted_text_str,
+        "method_id": 2,
+        "data_in": text_before_operation,
+        "params": {"text": text_before_operation, "keyword": keyword},
+        "data_out": text_after_operation_str,
         "status": 200,
         "created_at": datetime.now(),
         "time_op": 0.0
     }
-    sessions.append(session)
-
-    return {"status": 200, "data": decrypted_text_str}
-
+    return session
 
 @app.get("/encrypt/vigenere")
 def encrypt_vigenere_method(text_for_encrypt: str, keyword: str, login: str, secret: str):
@@ -180,20 +186,10 @@ def encrypt_vigenere_method(text_for_encrypt: str, keyword: str, login: str, sec
 
     encrypted_text_str = ''.join(encrypted_text)
 
-    session = {
-        "id": len(sessions) + 1,
-        "user_id": user["id"],
-        "method_id": 2,
-        "data_in": text_for_encrypt,
-        "params": {"text": text_for_encrypt, "keyword": keyword},
-        "data_out": encrypted_text_str,
-        "status": 200,
-        "created_at": datetime.now(),
-        "time_op": 0.0
-    }
+    session = session_vigenere(user, text_for_encrypt, keyword, encrypted_text_str)
     sessions.append(session)
 
-    return {"status": 200, "data": encrypted_text_str}
+    return {"status": 200, "data": encrypted_text_str, "sessions": sessions}
 
 
 @app.get("/decrypt/vigenere")
@@ -216,22 +212,10 @@ def decrypt_vigenere_method(text_for_decrypt: str, keyword: str, login: str, sec
             decrypted_text.append(char)
 
     decrypted_text_str =''.join(decrypted_text)
-
-    session = {
-        "id": len(sessions) + 1,
-        "user_id": user["id"],
-        "method_id": 2,
-        "data_in": text_for_decrypt,
-        "params": {"text": text_for_decrypt, "keyword": keyword},
-        "data_out": decrypted_text_str,
-        "status": 200,
-        "created_at": datetime.now(),
-        "time_op": 0.0
-    }
-
+    session = session_vigenere(user, text_for_decrypt, keyword, decrypted_text_str)
     sessions.append(session)
 
-    return {"status": 200, "data": decrypted_text_str}
+    return {"status": 200, "data": decrypted_text_str, "sessions": sessions}
 
 
 @app.get("/get_session/{session_id}")
