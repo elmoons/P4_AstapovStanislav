@@ -22,6 +22,8 @@ methods = Table(
 )
 
 sessions = Table(
+    "sessions",
+    metadata,
     Column("id", Integer, primary_key=True),
     Column("user_id", Integer, ForeignKey("users.id")),
     Column("method_id", Integer, ForeignKey("methods.id")),
