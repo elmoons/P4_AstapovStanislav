@@ -65,7 +65,7 @@ def add_user(users: List[Users]):
     for user in users:
         if user.login in [u['login'] for u in fake_users]:
             raise HTTPException(status_code=400, detail=f"Login '{user.login}' is already in use")
-    fake_users.extend(users)
+        fake_users.append(user.dict())
     return {"status": 200, "data": fake_users}
 
 
@@ -106,6 +106,7 @@ def session_caesar(user, text_before_operation, number_of_shifts, text_after_ope
         "time_op": 0.0
     }
     return session
+
 
 @app.get("/encrypt/caesar")
 def encrypt_caesar_method(text_for_encrypt: str, number_of_shifts: int, login: str, secret: str):
@@ -165,6 +166,7 @@ def session_vigenere(user, text_before_operation, keyword, text_after_operation_
     }
     return session
 
+
 @app.get("/encrypt/vigenere")
 def encrypt_vigenere_method(text_for_encrypt: str, keyword: str, login: str, secret: str):
     user = identification_user(login, secret)
@@ -185,10 +187,8 @@ def encrypt_vigenere_method(text_for_encrypt: str, keyword: str, login: str, sec
             encrypted_text.append(char)
 
     encrypted_text_str = ''.join(encrypted_text)
-
     session = session_vigenere(user, text_for_encrypt, keyword, encrypted_text_str)
     sessions.append(session)
-
     return {"status": 200, "data": encrypted_text_str, "sessions": sessions}
 
 
@@ -211,7 +211,7 @@ def decrypt_vigenere_method(text_for_decrypt: str, keyword: str, login: str, sec
         else:
             decrypted_text.append(char)
 
-    decrypted_text_str =''.join(decrypted_text)
+    decrypted_text_str = ''.join(decrypted_text)
     session = session_vigenere(user, text_for_decrypt, keyword, decrypted_text_str)
     sessions.append(session)
 
@@ -242,3 +242,64 @@ def delete_session(session_id: int, secret: str):
         raise HTTPException(status_code=404, detail="Session not found or access denied")
     del sessions[session_index]
     return {"status": 200, "data": sessions}
+
+
+def caesar_decrypt(text: str, shift: int) -> str:
+    decrypted_text = []
+    alphabet_size = len(ALPHABET)
+    for char in text:
+        if char in ALPHABET:
+            encrypted_index = ALPHABET.index(char)
+            new_index = (encrypted_index - shift) % alphabet_size
+            decrypted_text.append(ALPHABET[new_index])
+        else:
+            decrypted_text.append(char)
+    return ''.join(decrypted_text)
+
+
+def vigenere_decrypt(text: str, keyword: str) -> str:
+    decrypted_text = []
+    alphabet_size = len(ALPHABET)
+    keyword_len = len(keyword)
+    keyword_upper = keyword.upper()
+
+    for i, char in enumerate(text):
+        if char in ALPHABET:
+            encrypted_index = ALPHABET.index(char)
+            key_char = keyword_upper[i % keyword_len]
+            key_index = ALPHABET.index(key_char)
+            new_index = (encrypted_index - key_index) % alphabet_size
+            decrypted_text.append(ALPHABET[new_index])
+        else:
+            decrypted_text.append(char)
+
+    return ''.join(decrypted_text)
+
+
+@app.post("/hack")
+def hack_text(text_for_hack: str, known_word: str) -> dict:
+    known_word = known_word.upper()
+    for shift in range(len(ALPHABET)):
+        decrypted_text = caesar_decrypt(text_for_hack, shift)
+        if known_word in decrypted_text:
+            return {"method": "caesar", "shift": shift, "decrypted_text": decrypted_text}
+
+    keyword_len_range = range(1, len(text_for_hack) // len(known_word) + 2)
+
+    for keyword_len in keyword_len_range:
+        for start_idx in range(len(text_for_hack) - len(known_word) + 1):
+            substring = text_for_hack[start_idx:start_idx + len(known_word)]
+            candidate_keyword = ''
+            for i in range(len(known_word)):
+                keyword_char = known_word[i]
+                encrypted_char = substring[i]
+                encrypted_index = ALPHABET.index(encrypted_char)
+                key_char = keyword_char.upper()
+                key_index = ALPHABET.index(key_char)
+                new_index = (encrypted_index - key_index) % len(ALPHABET)
+                candidate_keyword += ALPHABET[new_index]
+            decrypted_text = vigenere_decrypt(text_for_hack, candidate_keyword)
+            if known_word in decrypted_text:
+                return {"method": "vigenere", "keyword": candidate_keyword, "decrypted_text": decrypted_text}
+
+    return {"status": 404, "message": "Decryption failed"}
